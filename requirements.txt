@@ -1,0 +1,35 @@
+# # python==3.11.9
+# # 最新
+# matplotlib==3.10.1
+# mne==1.9.0
+# moabb==1.2.0
+# modAL==0.73.91
+# modAL_python==0.4.2
+# numpy==2.2.3
+# openai==1.65.4
+# pandas==1.5.3
+# python-dotenv==1.0.1
+# scikit_learn==1.6.1
+# scipy==1.15.2
+# seaborn==0.13.2
+# tiktoken==0.8.0
+# torch==2.0.1
+# tqdm==4.66.5
+# transformers==4.46.3
+
+# 当前
+matplotlib==3.9.2
+mne==1.8.0
+moabb==1.1.1
+modAL-python @ git+https://github.com/modAL-python/modAL.git@bba6f6fd00dbb862b1e09259b78caf6cffa2e755 # 0.4.2
+# numpy==1.26.4
+openai==1.57.2
+pandas==1.5.3
+python-dotenv==1.0.1
+scikit-learn==1.5.1
+scipy==1.14.1
+seaborn==0.12.2
+tiktoken==0.8.0
+torch==2.0.1
+tqdm==4.66.5
+transformers==4.46.3
