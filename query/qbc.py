@@ -8,7 +8,7 @@ import numpy as np
 # np.random.seed(RANDOM_STATE_SEED)
 import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
-from active_prompt.load.load_moabb import get_moabb_data
+from PGAP.load.load_moabb import get_moabb_data
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from modAL.models import ActiveLearner, Committee
 from modAL.disagreement import vote_entropy_sampling, max_disagreement_sampling, consensus_entropy_sampling

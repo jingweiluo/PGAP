@@ -22,7 +22,7 @@ import torch
 current_file_path = os.path.abspath(__file__)
 parent_parent_dir = os.path.dirname(os.path.dirname(os.path.dirname(current_file_path)))
 sys.path.append(parent_parent_dir)
-# from active_prompt.model.trainer import EEGNet_transform
+# from PGAP.model.trainer import EEGNet_transform
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

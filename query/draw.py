@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
 import seaborn as sns
 import itertools
-from active_prompt.load.load_moabb import get_moabb_data
+from PGAP.load.load_moabb import get_moabb_data
 
 def plot_tsne_with_all_indices(train_data, train_labels, sample_map, sub_index):
     """

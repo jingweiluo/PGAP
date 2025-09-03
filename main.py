@@ -7,16 +7,16 @@ import argparse
 current_file_path = os.path.abspath(__file__)
 parent_parent_dir = os.path.dirname(os.path.dirname(current_file_path))
 sys.path.append(parent_parent_dir)
-from active_prompt.prompt.prompt_writer import prompt
+from PGAP.prompt.prompt_writer import prompt
 from utils import collect_y_pred, get_accuracy_and_log
-from active_prompt.load.load_data import get_seed_data
-from active_prompt.load.load_moabb import get_moabb_data, get_moabb_data_crs_sub
-from active_prompt.load.load_five_folds import get_moabb_data_cv
-from active_prompt.load.load_sleep import get_sleep_data, get_sleep_data_crs_sub
-from active_prompt.load.load_epilepsy import get_ep_data
-from active_prompt.load.load_uci import get_uci_data_cv
-from active_prompt.query.qbc import find_centroids, rd_basic
-from active_prompt.query.svm import balanced_svm, svm_near, bal_simn_multi
+from PGAP.load.load_data import get_seed_data
+from PGAP.load.load_moabb import get_moabb_data, get_moabb_data_crs_sub
+from PGAP.load.load_five_folds import get_moabb_data_cv
+from PGAP.load.load_sleep import get_sleep_data, get_sleep_data_crs_sub
+from PGAP.load.load_epilepsy import get_ep_data
+from PGAP.load.load_uci import get_uci_data_cv
+from PGAP.query.qbc import find_centroids, rd_basic
+from PGAP.query.svm import balanced_svm, svm_near, bal_simn_multi
 from tqdm import tqdm
 from datetime import datetime
 from sklearn.model_selection import StratifiedKFold
@@ -270,7 +270,7 @@ if __name__ == '__main__':
     num_subs = {
         '2a': 9,
         '2b': 9,
-        'BNCI2015_001': 9,
+        'BNCI2015_001': 12,
         'BNCI2014_002': 14,
         'Weibo2014': 10,
         'sleep-edfx': 7,

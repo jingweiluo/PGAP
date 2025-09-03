@@ -12,7 +12,7 @@
 # from sklearn.metrics import accuracy_score
 # from moabb.datasets import BNCI2014001, BNCI2015_004, Weibo2014, Nakanishi2015, BNCI2014008
 # from moabb.paradigms import MotorImagery, SSVEP
-# from active_prompt.load.load_five_folds import get_moabb_data_cv
+# from PGAP.load.load_five_folds import get_moabb_data_cv
 
 # parser = argparse.ArgumentParser()
 # parser.add_argument('--sub_index', type=int, default=1, help='1-9')

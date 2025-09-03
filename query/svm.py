@@ -840,7 +840,7 @@ if __name__ == '__main__':
     current_file_path = os.path.abspath(__file__)
     parent_parent_dir = os.path.dirname(os.path.dirname(os.path.dirname(current_file_path)))
     sys.path.append(parent_parent_dir)
-    from active_prompt.load.load_moabb import get_moabb_data
+    from PGAP.load.load_moabb import get_moabb_data
 
     dataset_name = "BNCI2015_001" # BNCI2015_001
     sub_index = 3
