@@ -204,6 +204,48 @@ def prompt_dynamic(left_demo, right_demo, train_data, train_label, test_data):
         file.write(f"3. 列表的长度必须为{len(test_data)}(与待预测样本的数量一致)。\n")
         file.write("4. 仅返回标签列表，请不要包含任何多余内容！\n")
 
+def prompt_en(train_data, train_label, test_data, label_names, mean_value, para):
+    if para == 'mi':
+        with open("output_with_text.txt", "w", encoding='utf-8') as file:
+            # Task description
+            file.write("### Task Description ###\n")
+            file.write(f"Given a set of EEG feature samples, determine which motor imagery class the test samples belong to among {', '.join(label_names)}.\n\n")
+
+            # Analysis method
+            file.write("### Analysis Method ###\n")
+            file.write("Please build an SVM classifier to classify the test samples.\n\n")
+
+            # First group of demonstration samples
+            file.write("### First Group of Demonstration Samples ###\n")
+            file.write("### The first group contains the most confident and typical demonstration samples. ###\n")
+            for i, array_2d in enumerate(train_data):
+                if i < (len(train_data) // 2):
+                    file.write(f"#### Demonstration Sample {i+1} ####\n")
+                    file.write(f"Features: {np.array2string(array_2d.flatten(), separator=' ')}\n")
+                    file.write(f"Label: {train_label[i]}\n\n")
+
+            # Second group of demonstration samples
+            file.write("### Second Group of Demonstration Samples ###\n")
+            file.write("### The second group contains demonstration samples obtained from k-means cluster centers. ###\n")
+            for i, array_2d in enumerate(train_data):
+                if i >= (len(train_data) // 2):
+                    file.write(f"#### Demonstration Sample {i+1} ####\n")
+                    file.write(f"Features: {np.array2string(array_2d.flatten(), separator=' ')}\n")
+                    file.write(f"Label: {train_label[i]}\n\n")
+
+            # Test samples
+            file.write("### Test Samples ###\n")
+            for i, array_2d in enumerate(test_data):
+                file.write(f"#### Test Sample {i+1} ####\n")
+                file.write(f"Features: {np.array2string(array_2d.flatten(), separator=' ')}\n\n")
+
+            # Output requirements
+            file.write("### Requirements ###\n")
+            file.write("1. The output must be a Python list in JSON format, with all strings enclosed in double quotes.\n")
+            file.write(f"2. Each element of the list should be one of: {', '.join(label_names)}.\n")
+            file.write(f"3. The length of the list must be {len(test_data)} (the same as the number of test samples).\n")
+            file.write("4. Return only the label list, do not include any extra content.\n")
+
 # 正式的prompt
 def prompt(train_data, train_label, test_data, label_names, mean_value, para):
     if para == 'mi':

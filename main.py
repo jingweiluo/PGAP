@@ -144,7 +144,7 @@ def run_exp(exp_setting, dataset_name, sub_index, methods, test_id, repeat_times
     date_str = datetime.today().strftime("%Y-%m-%d")
     log_path = f'log/experiments/{exp_setting}_{dataset_name}_{date_str}.txt'
 
-    with open(log_path, 'a') as f:
+    with open(log_path, 'a', encoding="utf-8") as f:
         # ===== 1. 记录参数 =====
         f.write('Experiment Parameters:\n')
         f.write(f'exp setting = {exp_setting}\n')

@@ -1,13 +1,12 @@
 # ==============================================线上模型=================================
 
 from openai import OpenAI # type: ignore
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 import os
 from dotenv import load_dotenv # type: ignore
 import tiktoken
 load_dotenv()
-
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 # client = OpenAI(
 #     api_key=os.getenv("QWEN_API_KEY"),
 #     base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
@@ -17,7 +16,7 @@ genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 # 获取模型的编码器（用于计算 tokens）
 def count_tokens(prompt):
-    enc = tiktoken.get_encoding("cl100k_base")  # 使用 GPT-2 的编码器，适用于大部分 GPT 模型
+    enc = tiktoken.get_encoding("o200k_base")  # 使用 GPT-2 的编码器，适用于大部分 GPT 模型
     tokens = enc.encode(prompt)
     return len(tokens)
 
@@ -32,7 +31,7 @@ def ask_llm_online(model_type):
     elif model_type.startswith("gpt"):
         client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     elif model_type.startswith("gemini"):
-        client = genai.GenerativeModel(model_type)
+        client = genai.Client()
 
     with open("output_with_text.txt", "r", encoding="utf-8") as file:
         prompt = file.read()
@@ -42,13 +41,36 @@ def ask_llm_online(model_type):
     print(f"输入token数量: {input_token_count}")
 
     if model_type.startswith("gemini"):
-        response = client.generate_content(
-            prompt,
-            generation_config={
-                "temperature": 0.2,
-                "max_output_tokens": 100
-            }
+        # model = genai.GenerativeModel(model_type)  # 例: "gemini-1.5-flash" / "gemini-1.5-pro"
+        try:
+            resp = client.models.generate_content(
+                model = model_type,
+                contents = prompt,                    
+                config=types.GenerateContentConfig(
+                    system_instruction="You are a helpful assistant.",
+                    # thinking_config=types.ThinkingConfig(thinking_budget=0), # Disables thinking
+                    temperature=0.2,
+                ),
+                # generation_config={
+                #     "temperature": 0.2,
+                #     "max_output_tokens": 100
+                # },
+                # request_options={"timeout": 30}  # ✅ 避免无限等待
+            )
+            result = resp.text
+        except Exception as e:
+            raise RuntimeError(f"Gemini 调用失败: {e}")
+    elif model_type.startswith("gpt-5"):
+        print("gpt-5启用")
+        gpt5client = OpenAI()
+        response = gpt5client.responses.create(
+            model="gpt-5-mini",
+            input=prompt,
+            # input="Please name five countries.",
+            reasoning={ "effort": "low" },
+            text={ "verbosity": "low" },
         )
+        result = response.output_text
     else:
         response = client.chat.completions.create(
             model= model_type,
@@ -61,10 +83,13 @@ def ask_llm_online(model_type):
                 {"role": "user", "content": prompt},
             ],
             temperature=0.2,  # 设置温度较低以提高回答的一致性
-            max_tokens= 100 #8192  # 设置回答的最大 token 数量
+            max_tokens= 100, #8192  # 设置回答的最大 token 数量
         )
+        result = response.choices[0].message.content
+
     # 获取并返回模型生成的文本
-    return response.choices[0].message.content
+    print('LLM输出', result, '输出结束')
+    return result
 
 # ==============================================本地模型=================================
 import os
