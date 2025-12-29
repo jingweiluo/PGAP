@@ -273,6 +273,7 @@ def prompt(train_data, train_label, test_data, label_names, mean_value, para):
             # 示例样本
             file.write("### 第一组示例样本 ###\n")
             file.write("### 第一组的示例样本是置信度最高的，非常典型的示例样本 ###\n")
+
             for i, array_2d in enumerate(train_data):
                 if i < (len(train_data) // 2):
                     file.write(f"#### 示例样本 {i+1} ####\n")
@@ -281,6 +282,7 @@ def prompt(train_data, train_label, test_data, label_names, mean_value, para):
 
             file.write("### 第二组示例样本 ###\n")
             file.write("### 第二组的示例样本是使用kmeans方法得到的聚类中心示例样本 ###\n")
+
             for i, array_2d in enumerate(train_data):
                 if i >= (len(train_data) // 2):
                     file.write(f"#### 示例样本 {i+1} ####\n")
@@ -307,6 +309,7 @@ def prompt(train_data, train_label, test_data, label_names, mean_value, para):
             file.write(f"2. 列表中的每个元素均为字符，{', '.join(label_names)}\n")
             file.write(f"3. 列表的长度必须为{len(test_data)}(与待预测样本的数量一致)。\n")
             file.write("4. 仅返回标签列表，请不要包含任何多余内容！\n")
+            file.write("5. 在以上输入中，若某一特征值被标记为 [MASK]、NA等特殊符号，表示该特征在当前样本中不可用或已被刻意遮蔽。模型在推理时应将其视为不包含任何有效数值信息的占位符，而非具体数值。")
 
     elif para in ['sleep', 'epilepsy', 'emo']:
         # 开始写文件

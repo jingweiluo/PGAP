@@ -2,14 +2,40 @@ import subprocess
 import time
 
 # 指令列表
+sub_index = 8
+dataset_name = 'BNCI2015_001'
+
 commands = [
     # # 跑MI被试内
     # "python main.py --exp_setting within_sub --dataset_name 2a",
-    # "python main.py --exp_setting within_sub --dataset_name 2b",
+
+    # f"python main.py --exp_setting within_sub --dataset_name {dataset_name} --repeat_times 5 --methods PURE --sub_index {sub_index} --noise_target 0 1 --ablation flip_half_labels",
+    # f"python main.py --exp_setting within_sub --dataset_name {dataset_name} --repeat_times 5 --methods PURE --sub_index {sub_index} --noise_target 0 1 --ablation flip_all_labels",
+
+    # f"python main.py --exp_setting within_sub --dataset_name {dataset_name} --repeat_times 5 --methods PURE --sub_index {sub_index} --noise_target 0 1 --ablation feat_mask",
+    # f"python main.py --exp_setting within_sub --dataset_name {dataset_name} --repeat_times 5 --methods PURE --sub_index {sub_index} --noise_target 0 1 --ablation feat_noise",
+    # f"python main.py --exp_setting within_sub --dataset_name {dataset_name} --repeat_times 5 --methods PURE --sub_index {sub_index} --noise_target 0 1 --ablation feat_perm",
+
+    # f"python main.py --exp_setting within_sub --dataset_name {dataset_name} --repeat_times 5 --methods PURE --sub_index {sub_index} --noise_target 2 3 --ablation feat_mask",
+    # f"python main.py --exp_setting within_sub --dataset_name {dataset_name} --repeat_times 5 --methods PURE --sub_index {sub_index} --noise_target 2 3 --ablation feat_noise",
+    # f"python main.py --exp_setting within_sub --dataset_name {dataset_name} --repeat_times 5 --methods PURE --sub_index {sub_index} --noise_target 2 3 --ablation feat_perm",
+
+    # f"python main.py --exp_setting within_sub --dataset_name {dataset_name} --repeat_times 5 --methods PURE --sub_index {sub_index} --noise_target 4 5 --ablation feat_mask",
+    # f"python main.py --exp_setting within_sub --dataset_name {dataset_name} --repeat_times 5 --methods PURE --sub_index {sub_index} --noise_target 4 5 --ablation feat_noise",
+    # f"python main.py --exp_setting within_sub --dataset_name {dataset_name} --repeat_times 5 --methods PURE --sub_index {sub_index} --noise_target 4 5 --ablation feat_perm",
+
+    # f"python main.py --exp_setting within_sub --dataset_name {dataset_name} --repeat_times 5 --methods PURE --sub_index {sub_index} --noise_target 6 7 --ablation feat_mask",
+    # f"python main.py --exp_setting within_sub --dataset_name {dataset_name} --repeat_times 5 --methods PURE --sub_index {sub_index} --noise_target 6 7 --ablation feat_noise",
+    # f"python main.py --exp_setting within_sub --dataset_name {dataset_name} --repeat_times 5 --methods PURE --sub_index {sub_index} --noise_target 6 7 --ablation feat_perm",
+
+    f"python main.py --exp_setting within_sub --dataset_name {dataset_name} --repeat_times 1 --methods PURE --sub_index {sub_index} --model_type gemini-3",
+
+
+
     # "python main.py --exp_setting within_sub --dataset_name BNCI2014_002",
     # "python main.py --exp_setting within_sub --dataset_name BNCI2015_001",
     # "python main.py --exp_setting within_sub --dataset_name BNCI2015_001",
-    "python main.py --exp_setting within_sub --dataset_name Weibo2014",
+    # "python main.py --exp_setting within_sub --dataset_name Weibo2014",
 
     # # 跑2a数据集尝试不同示例数量
     # "python main.py --exp_setting within_sub --dataset_name 2a --num_demos 2",

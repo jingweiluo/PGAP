@@ -38,6 +38,9 @@ def get_args():
     parser.add_argument('--measurement', type=str, default='ed', help='ed for Euclidean, cs for Cosine similarity')
     parser.add_argument('--combine_method', type=str, default=None, help='')
     parser.add_argument('--test_num', type=int, default=None, help='only for small test')
+    parser.add_argument("--noise_target", type=int, nargs="+", default=[0, 1])
+    parser.add_argument('--ablation', type=str, default=None, help='feat_mask, feat_noise, feat_perm, filp_half_labels, filp_all_labels')
+
     return parser.parse_args()
 
 def ndToList(array):
@@ -78,7 +81,7 @@ def split_by_labels(train_data, train_labels):
         index_dict[lab] = idx
     return data_dict, index_dict
 
-def static_demo_predict(train_data, test_data, train_labels, test_labels, num_demos, max_predict_num, model_type, way_select_demo, is_model_online, test_num, combine_method, measurement, para):
+def static_demo_predict(train_data, test_data, train_labels, test_labels, num_demos, max_predict_num, model_type, way_select_demo, is_model_online, test_num, combine_method, measurement, para, ablation, noise_target):
     data_dict, index_dict = split_by_labels(train_data, train_labels)
     num_cls = len(data_dict) # 类别数量
 
@@ -123,6 +126,140 @@ def static_demo_predict(train_data, test_data, train_labels, test_labels, num_de
     demo_data = [train_data[i] for i in selected_indices]
     demo_labels = [train_labels[i] for i in selected_indices]
     print(way_select_demo, selected_indices, demo_labels)
+    # =============================================================================== #
+    # Input perturbation
+    # =============================================================================== #
+    print('!!!', type(train_data), type(train_data[0]), train_data[0].shape)
+    train_arr = np.stack(train_data, axis=0)     # (N, 4, 2)
+    std_arr = train_arr.reshape(len(train_data), -1).std(axis=0)  # (8,)
+    print('Perturbation Dim: ', noise_target)
+
+    def add_noise_on_targets(data_list, std_arr, noise_target, alpha=1.0, seed=None):
+        """
+        data_list: List[np.ndarray], each (4,2)
+        noise_target: list/np.ndarray of ints in [0,7], e.g., [0,1] for first freq band
+        alpha: sigma = alpha * std_arr[idx]
+        #   band 0 -> idx [0,1]
+        #   band 1 -> idx [2,3]
+        #   band 2 -> idx [4,5]
+        #   band 3 -> idx [6,7]
+        """
+        rng = np.random.default_rng(seed)
+        targets = np.array(noise_target, dtype=int).ravel()
+        out = []
+        for x in data_list:
+            x2 = np.array(x, copy=True).reshape(-1)  # (8,)
+            noise = rng.normal(0.0, alpha * std_arr[targets], size=targets.shape)
+            x2[targets] += noise
+            out.append(x2.reshape(4, 2))
+        return out
+
+    def mask_on_targets(data_list, noise_target, mask_token="[MASK]"):
+        """
+        data_list: List[np.ndarray], each (4,2)
+        noise_target: list/np.ndarray of ints in [0,7]
+        mask_token: str, e.g. "[MASK]" or "NA"
+        """
+        targets = np.array(noise_target, dtype=int).ravel()
+        out = []
+
+        for x in data_list:
+            # 转成 object，允许数值 + 字符串共存
+            x2 = np.array(x, copy=True, dtype=object).reshape(-1)  # (8,)
+            for idx in targets:
+                x2[idx] = mask_token
+            out.append(x2.reshape(4, 2))
+
+        return out
+    
+
+    def permute_band_features(data_list, noise_target, seed=None):
+        """
+        data_list: List[np.ndarray], each (4,2)
+        noise_target: list/np.ndarray of ints in [0,7]
+                    e.g., [4,5] means band=2 two CSP dims
+        """
+        rng = np.random.default_rng(seed)
+        arr = np.stack(data_list, axis=0)        # (N, 4, 2)
+
+        targets = np.array(noise_target, dtype=int).ravel()
+        assert np.all((0 <= targets) & (targets <= 7)), f"noise_target out of range: {targets}"
+
+        perm = rng.permutation(len(arr))         # (N,)
+        flat = arr.reshape(len(arr), -1)         # (N, 8)
+        flat[:, targets] = flat[perm][:, targets]
+        arr2 = flat.reshape(len(arr), 4, 2)
+        return [arr2[i] for i in range(len(arr2))]
+    
+    if ablation == 'feat_mask':
+        print('feat_mask!!!')
+        demo_data = mask_on_targets(demo_data, noise_target, mask_token="[MASK]")
+    elif ablation == 'feat_noise':
+        print('feat_noise!!!')
+        demo_data = add_noise_on_targets(demo_data, std_arr, noise_target)
+    elif ablation == 'feat_perm':
+        print('feat_perm!!!')
+        demo_data = permute_band_features(demo_data, noise_target)
+
+    # =============================================================================== #
+    # =============================================================================== #
+
+    # =============================================================================== #
+    # Example Ablation
+    # =============================================================================== #
+    def flip_half_labels(demo_labels, seed=None):
+        """
+        demo_labels: list，前半部分全为 A，后半部分全为 B
+        返回：在前半(A)随机翻转一半为B；在后半(B)随机翻转一半为A
+        """
+        n = len(demo_labels)
+        assert n % 2 == 0, "Expected even number of exemplars (e.g., 4-shot)."
+        mid = n // 2
+
+        A = demo_labels[0]
+        B = demo_labels[-1]
+        # 可选：强校验结构是否满足假设
+        assert all(y == A for y in demo_labels[:mid]) and all(y == B for y in demo_labels[mid:]), \
+            "demo_labels must be ordered: first half all A, second half all B."
+
+        rng = np.random.default_rng(seed)
+        out = list(demo_labels)
+
+        # 前半(A)翻转一半
+        k = mid // 2
+        idx_left = rng.choice(np.arange(0, mid), size=k, replace=False)
+        for i in idx_left:
+            out[i] = B
+
+        # 后半(B)翻转一半
+        idx_right = rng.choice(np.arange(mid, n), size=k, replace=False)
+        for i in idx_right:
+            out[i] = A
+        return out
+    
+    def flip_all_labels(demo_labels):
+        """
+        demo_labels: list，前半A后半B
+        返回：所有 A<->B 全部互换
+        """
+        n = len(demo_labels)
+        assert n % 2 == 0, "Expected even number of exemplars."
+        mid = n // 2
+
+        A = demo_labels[0]
+        B = demo_labels[-1]
+        assert all(y == A for y in demo_labels[:mid]) and all(y == B for y in demo_labels[mid:]), \
+            "demo_labels must be ordered: first half all A, second half all B."
+        return [B if y == A else A for y in demo_labels]
+    
+    if ablation == 'flip_half_labels':
+        print('flip half labels!!!')
+        demo_labels  = flip_half_labels(demo_labels)
+    elif ablation == 'flip_all_labels':
+        print('flip all labels!!!')
+        demo_labels = flip_all_labels(demo_labels)
+    # =============================================================================== #
+    # =============================================================================== #
 
     if test_num:
         y_true = test_labels[:test_num]
@@ -134,7 +271,7 @@ def static_demo_predict(train_data, test_data, train_labels, test_labels, num_de
     accuracy, precision, recall, f1 = get_accuracy_and_log(y_true, y_pred)
     return accuracy, precision, recall, f1
 
-def run_exp(exp_setting, dataset_name, sub_index, methods, test_id, repeat_times, num_demos, max_predict_num, model_type, is_model_online, test_num, combine_method, measurement):
+def run_exp(exp_setting, dataset_name, sub_index, methods, test_id, repeat_times, num_demos, max_predict_num, model_type, is_model_online, test_num, combine_method, measurement, ablation, noise_target):
     if sub_index:
         sub_list = [sub_index]
     else:
@@ -143,7 +280,7 @@ def run_exp(exp_setting, dataset_name, sub_index, methods, test_id, repeat_times
     # 创建日志文件路径
     date_str = datetime.today().strftime("%Y-%m-%d")
     log_path = f'log/experiments/{exp_setting}_{dataset_name}_{date_str}.txt'
-
+    os.makedirs(os.path.dirname(log_path), exist_ok=True)
     with open(log_path, 'a', encoding="utf-8") as f:
         # ===== 1. 记录参数 =====
         f.write('Experiment Parameters:\n')
@@ -221,7 +358,7 @@ def run_exp(exp_setting, dataset_name, sub_index, methods, test_id, repeat_times
                             train_data, test_data, train_labels, test_labels,
                             num_demos, max_predict_num, model_type,
                             method, is_model_online, test_num,
-                            combine_method, measurement, para_dict[dataset_name]
+                            combine_method, measurement, para_dict[dataset_name], ablation, noise_target
                         )
                         print(method, acc)
                         result_dict[method].append(acc)
