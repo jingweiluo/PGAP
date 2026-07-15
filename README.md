@@ -33,7 +33,7 @@ If you find this work useful, please cite:
   number={3},
   pages={49--64},
   year={2026},
-  month={Jul.},
+  month={Aug.},
   doi={10.1109/MCI.2026.3665159},
   publisher={IEEE}
 }
